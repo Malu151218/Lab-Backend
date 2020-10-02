@@ -54,19 +54,33 @@ app.use(morgan("combined"));
 
 ///////////////////// Init Array de Compras. (Simulo una Base de datos)
 const compras = [
- 
   {
-    "id": "adkjfh",
-    "clientId": "1000",
-    "products": ["100","300","400","500","600","700","800"],
-    "amount": 10000,
-    "paymentMethod": "Credit Card"
-}
+      "id": "malu2018",
+      "clientId": "1000",
+      "products": ["100","300","400","500","600","700","800"],
+      "amount": 20000,
+      "paymentMethod": "Cash",
+      "createdAt": fechaActual()
+      
+  },
+  {
+    "id": "ale6534890",
+    "clientId": "1001",
+    "products": ["100","400","600","700",],
+    "amount": 1500,
+    "paymentMethod": "Credit Card",
+    "createdAt":fechaActual()
+  }
 ];
 
 app.get('/',function(req,res){
   res.status(200).send({"message":"Bienvenidos a la compra"});
 })
+
+//Si No encuentra el Recurso
+app.get("/*", function (req, res) {
+  res.status(404).send({ message: "recurso no encontrado" });
+});
 
 //////////////////// Defino Rutas, me baso en el modelo REST
 
@@ -94,72 +108,91 @@ app.get("/compras/:id", function (req, res){
     res.status(404).send({"message":"Compra Not Found - 404"});
 });
 
-        // Create Compra 
+      // Create Compra 
 
-app.post("/compras/", function (req, res) {
-  // CUANDO LOS DATOS NO VIENEN CON EL FORMATO REALIZO (VALIDACION DE DATOS), LE COMUNICO AL USUARIO
+    app.post("/compras/", function (req, res) {
 
-  if(!req.body || !req.body.clientId || !req.body.products || !req.body.amount || !req.body.paymentMethod){
-      
-    return res.status(400).send({"message":"Bad Request"});
-  }
-      //Realizo al Req, ya que es la petición y .body, como lo haciamos en postman (cuerpo)==> req.body 
-  const newCompra = {
-      "id":getNextID(), //llamo a la función creada para que al ID máximo le sume 1 el que estoy creando
-      "clientId":req.body.clientId,
-      "products":req.body.products,
-      "amount":req.body.amount,
-      "paymentMethod": req.body.paymentMethod
-  }
-  compras.push(newCompra); 
+      if (!req.body.clientId || !req.body.products || !req.body.paymentMethod || !req.body.amount) {
+        res.status(400).send({ "mensaje": "Compra no creada - Falta algun parametro requerido" })
+      }
+      else if (req.body.id) {
+        res.status(400).send({ "mensaje": "Compra no creada con Id" })
+      } else {
+          const compraNew = {
+            "id": uniqid(),
+            "clientId": req.body.clientId,
+            "products": req.body.products,
+            "amount": req.body.amount,
+            "paymentMethod": req.body.paymentMethod,
+            "createdAt": fechaActual()
+          }
+        
+          compras.push(compraNew)
+          res.status(201).send({ "compraAgregada": compraNew })
+          console.log(compras)
+        
+          }
+        
+      });
 
-  //201 ==> OK CREATED
-  return res.status(201).send({"compra":newCompra});
+        // Actualizar  Compra 
+    app.put("/compras/:id", function (req, res) {
 
-});
+      if(!req.body || !req.body.clientId || !req.body.products || !req.body.amount || !req.body.paymentMethod) {
+       return res.status(400).send({"mensaje":"Compra no creada - Falta algun parametro requerido" });
+     }
 
-app.post("/compras/", function( req, res){
-  
-})
+      let CompraId = req.params.id;
+      let compraReemplazada = null;
+      let NewCompra = {
+        "id":req.body.id,
+        "clientId": req.body.clientId,
+        "products": req.body.products,
+        "amount": req.body.amount,
+        "paymentMethod": req.body.paymentMethod,
+        "createdAt": mostrarFecha()
+      }
+    compras.forEach(function(compra, i){
+
+      if(compra.id == CompraId){
+       compraReemplazada = i;
+      }
+    });
+
+      if(compraReemplazada !== null){
+      let compraSpliceR = compras.splice(compraReemplazada, 1, NewCompra);
+      return res.status(200).send({compra:compraSpliceR});  
+      }
+      res.status(404).send({"mensaje":"compra no encontrada"});
+    });
 
 
+      // Eliminar Compra 
 
-//app.put("/compras/:id", function (req, res) { });
+    app.delete("/compras/:id", function (req, res) {
+      let deleteID = req.params.id;
+      let compraEliminada; 
+      let indiceID;
 
-app.put("/compras/:id", function (req, res) {
-  if(!req.body || !req.body.clientId || !req.body.products || !req.body.amount || !req.body.paymentMethod) {
-   respuesta={
-    error: true,
-    codigo: 502,
-    mensaje: 'Los campos ClientId, Products, Amount, PaymentMethod son necesarios '
-   };
-  } else {
-   if(compra.clientId === '') {
-    respuesta = {
-     error: true,
-     codigo: 501,
-     mensaje: 'La compra no ha sido creada'
-    };
-   } else {
-    compra = {
-     ClientId: req.body.clientId,
-     id: req.body.id
-    };
-    respuesta = {
-     error: false,
-     codigo: 200,
-     mensaje: 'compra actualizado',
-     respuesta: compra
-    };
+      compras.forEach(function(compra,i){
+      if(deleteID==compra.id){
+        compraEliminada = compra
+      indiceID = i
+    }
+  })
+      if (compraEliminada){
+    compras.splice(indiceID,1)
+    res.status(200).send({"CompraEliminada": compraEliminada})
+    }else {
+        res.status(404).send({ "mensaje": "Compra not found" })
    }
-  }
-  
-  res.send(respuesta);
- });
+   });
 
 
 
-app.delete("/compras/:id", function (req, res) {});
+
+
+
 
 //////////////////// Ahora que tengo todo definido y creado, levanto el servicio escuchando peticiones en el puerto
 app.listen(PORT, function () {
@@ -171,13 +204,19 @@ app.listen(PORT, function () {
 
 // Espacio para Funciones creadas!!!
 
-function getNextID(){
+function fechaActual(){
+  let createdAt = new Date();
+  let fecha = `${createdAt.getDate()}/${createdAt.getMonth()+1}/${createdAt.getUTCFullYear()}`;
+  return fecha;
+}
+
+/*function getNextID(){
   //en esta parte busca el ID máximo y al ID que encuentra le suma 1 
   return  (compras.reduce((a, b) => { return a.id > b.id? a: b })).id + 1;
 };
+*/
 
-
-function validatorDatos(data){
+/*function validatorDatos(data){
   const {clientId, products, amount, paymentMethod} = req.body;
 
   if ( typeof clientId !== 'string'){
@@ -188,5 +227,5 @@ function validatorDatos(data){
   }
   if (typeof amount!== 'number' && amount >0){
   throw new Error ('Amount must be a Number')
-  }
-}
+  });
+  */
