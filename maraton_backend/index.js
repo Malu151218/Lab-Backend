@@ -132,7 +132,7 @@ app.get("/compras/:id", function (req, res){
       });
 
         // Actualizar  Compra 
-        
+
     app.put("/compras/:id", function (req, res) {
       let compraActual;
 
@@ -228,4 +228,31 @@ function fechaActual(){
   if (typeof amount!== 'number' && amount >0){
   throw new Error ('Amount must be a Number')
   });
+
+   // Create Compra 
+
+    app.post("/compras/", function (req, res) {
+
+      if (!req.body.clientId || !req.body.products || !req.body.paymentMethod || !req.body.amount) {
+        res.status(400).send({ "mensaje": "Compra no creada - Falta algun parametro requerido" })
+      }
+      else if (req.body.id) {
+        res.status(400).send({ "mensaje": "Compra no creada con Id" })
+      } else {
+          const compraNew = {
+            "id": uniqid(),
+            "clientId": req.body.clientId,
+            "products": req.body.products,
+            "amount": req.body.amount,
+            "paymentMethod": req.body.paymentMethod,
+            "createdAt": fechaActual()
+          }
+        
+          compras.push(compraNew)
+          res.status(201).send({ "compraAgregada": compraNew })
+          console.log(compras)
+        
+          }
+        
+      });
   */
