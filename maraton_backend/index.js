@@ -77,10 +77,6 @@ app.get('/',function(req,res){
   res.status(200).send({"message":"Bienvenidos a la compra"});
 })
 
-//Si No encuentra el Recurso
-app.get("/*", function (req, res) {
-  res.status(404).send({ message: "recurso no encontrado" });
-});
 
 //////////////////// Defino Rutas, me baso en el modelo REST
 
@@ -136,35 +132,34 @@ app.get("/compras/:id", function (req, res){
       });
 
         // Actualizar  Compra 
+        
     app.put("/compras/:id", function (req, res) {
+      let compraActual;
 
-      if(!req.body || !req.body.clientId || !req.body.products || !req.body.amount || !req.body.paymentMethod) {
-       return res.status(400).send({"mensaje":"Compra no creada - Falta algun parametro requerido" });
-     }
+      if (!req.body.clientId || !req.body.products || !req.body.paymentMethod || !req.body.amount) {
+            res.status(400).send({ "mensaje": "compra no creada, no tiene algun parametro requerido" })
+          }
+      else {
+        let compraId = req.params.id
 
-      let CompraId = req.params.id;
-      let compraReemplazada = null;
-      let NewCompra = {
-        "id":req.body.id,
-        "clientId": req.body.clientId,
-        "products": req.body.products,
-        "amount": req.body.amount,
-        "paymentMethod": req.body.paymentMethod,
-        "createdAt": mostrarFecha()
-      }
-    compras.forEach(function(compra, i){
-
-      if(compra.id == CompraId){
-       compraReemplazada = i;
-      }
-    });
-
-      if(compraReemplazada !== null){
-      let compraSpliceR = compras.splice(compraReemplazada, 1, NewCompra);
-      return res.status(200).send({compra:compraSpliceR});  
-      }
-      res.status(404).send({"mensaje":"compra no encontrada"});
-    });
+      compras.forEach(function (compra) {
+        if (compraId == compra.id) {
+                compra.clientId = req.body.clientId;
+                compra.products = req.body.products;
+                compra.amount = req.body.amount;
+                compra.paymentMethod = req.body.paymentMethod;
+                compra.createdAt = fechaActual();
+                compraActual=compra;
+              }
+            })
+        if (compraActual) {
+              res.status(201).send({ "compraModificada": compraActual})
+            }
+        else {
+              res.status(404).send({ "mensaje": "Compra no encontrada" })
+            }
+          }
+        });
 
 
       // Eliminar Compra 
@@ -197,6 +192,11 @@ app.get("/compras/:id", function (req, res){
 //////////////////// Ahora que tengo todo definido y creado, levanto el servicio escuchando peticiones en el puerto
 app.listen(PORT, function () {
   console.log(`Maraton Guayerd running on PORT: ${PORT}\n\n`);
+});
+
+//Si No encuentra el Recurso
+app.get("/*", function (req, res) {
+  res.status(404).send({ message: "recurso no encontrado" });
 });
 
 
