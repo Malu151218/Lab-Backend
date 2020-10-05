@@ -220,14 +220,15 @@ function fechaActual(){
   const {clientId, products, amount, paymentMethod} = req.body;
 
   if ( typeof clientId !== 'string'){
-  throw new Error ('clientId must be a string')
+   return throw new Error ('clientId must be a string')
   }
   if (typeof products !=='[]'){
-  throw new Error ('Products must be a Array')
+  return throw new Error ('Products must be a Array')
   }
   if (typeof amount!== 'number' && amount >0){
-  throw new Error ('Amount must be a Number')
+  return throw new Error ('Amount must be a Number')
   });
+  
 
    // Create Compra 
 
