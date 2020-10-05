@@ -23,7 +23,7 @@ const PORT = 'http://localhost:3001/compras';
         });
     });
 
-//POST compras
+//POST COMPRA
 const FORMCOMPRA = document.querySelector(".formCompra");
 FORMCOMPRA.addEventListener("submit", function (event){
     event.preventDefault();    
